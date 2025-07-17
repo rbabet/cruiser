@@ -7,6 +7,8 @@ The movements can be fast or slow.
 They can be kettlebell, barbell, bodyweight, or any combination you like.
 Test each drill. Find your 8-12RM, i.e. the load or progression that lets you do between 8 and 12 perfect reps. 
 
+On a Mac or Linux, run ./main.sh. On Windows, I guess run src/main.py under Python.
+
 When running the program, you will be prompted to enter the RMs for each drill if there is no saved data. 
 You can opt to delete the saved data and re-enter it. It's good to retest every 8 weeks or when things seem too easy.
 
