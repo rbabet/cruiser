@@ -29,6 +29,8 @@ def build_ladder(scheme, nl):
     reps, total, i = [], 0, 0
     while total < nl:
         r = scheme[i % len(scheme)]
+        if total + r > nl:
+            r = nl - total
         reps.append(r)
         total += r
         i += 1
@@ -41,9 +43,8 @@ def load_or_create_rms(drills, filename="rms.json"):
         print("Stored RMs:")
         for d, v in saved.items(): print(f"  {d}: {v}")
         choice = input("Use these? (y/n or r to reset): ").strip().lower()
-        if choice == 'y': return saved
-        elif choice == 'r': os.remove(filename)
-        elif choice == 'n': os.remove(filename)
+        if choice == 'y' or choice == '': return saved
+        elif choice in ('r', 'n'): os.remove(filename)
     rms = {}
     print("Enter RM (8–12) for each drill:")
     for drill in drills:
@@ -59,47 +60,74 @@ def load_or_create_rms(drills, filename="rms.json"):
         json.dump(rms, f)
     return rms
 
-def load_rolls(filename="rolls.json"):
-    return json.load(open(filename)) if os.path.exists(filename) else None
+def load_prev_nl(filename="nl.json"):
+    return json.load(open(filename)) if os.path.exists(filename) else {}
 
-def save_rolls(rolls, filename="rolls.json"):
+def save_week_nl(week_nl, filename="nl.json"):
     with open(filename, "w") as f:
-        json.dump(rolls, f)
+        json.dump(week_nl, f)
 
-def roll_new_week(drills, last_rolls=None):
-    rolls = {}
-    for drill in drills:
-        while True:
-            roll = random.randint(1, 6)
-            if not last_rolls or roll != last_rolls.get(drill):
-                rolls[drill] = roll
-                break
-    return rolls
+def reroll_nls(drills, last_nls, max_attempts=20):
+    attempt = 0
+    while attempt < max_attempts:
+        rolls = {}
+        week_nl = {}
+        for drill in drills:
+            for _ in range(10):  # up to 10 retries per drill
+                roll = random.randint(1, 6)
+                nl_total = volume_map[roll]["total"]
+                if last_nls.get(drill) != nl_total:
+                    rolls[drill] = roll
+                    week_nl[drill] = nl_total
+                    break
+            else:
+                break  # couldn't find a unique roll for this drill
+        if len(rolls) == len(drills):
+            return rolls, week_nl
+        attempt += 1
+    raise ValueError("Failed to generate unique weekly NLs per drill.")
+
+def print_pair(label, drills, ladders, nl_map):
+    print(f"\n{label} (alternate between drills):")
+    for d in drills:
+        reps = ladders[d]
+        line = f"{d:<6} " + " ".join(f"{r:>3}" for r in reps)
+        print(line)
+    for d in drills:
+        print(f"NL for {d}: {nl_map[d]}")
+    print()
 
 # === Main Execution ===
 def generate_week():
     drill_list = ["squat", "pull", "hinge", "push"]
     rms = load_or_create_rms(drill_list)
-    last_rolls = load_rolls()
-    rolls = roll_new_week(drill_list, last_rolls)
-    save_rolls(rolls)
+    last_nl = load_prev_nl()
+    rolls, week_nl_totals = reroll_nls(drill_list, last_nl)
+    save_week_nl(week_nl_totals)
 
-    volume_targets = {d: volume_map[rolls[d]] for d in drill_list}
+    weekly_nl = {d: 0 for d in drill_list}
 
     for session, block in session_structure.items():
         print(f"\nSession {session}")
-        rows = {}
+        tier_groups = {}
+
         for drill, tier in block:
-            rm = rms[drill]
-            scheme = rep_schemes[rm][tier]
-            nl = volume_targets[drill][tier]
-            ladder = build_ladder(scheme, nl)
-            rows[drill] = ladder
-        for drill, sets in rows.items():
-            print(f"{drill:<6}", end='')
-            for s in sets: print(f"{s:>4}", end='')
-            print()
+            tier_groups.setdefault(tier, []).append(drill)
+
+        for tier, drills in tier_groups.items():
+            nl_map, ladders = {}, {}
+            for drill in drills:
+                rm = rms[drill]
+                scheme = rep_schemes[rm][tier]
+                nl = volume_map[rolls[drill]][tier]
+                nl_map[drill] = nl
+                weekly_nl[drill] += nl
+                ladders[drill] = build_ladder(scheme, nl)
+            print_pair(tier, drills, ladders, nl_map)
+
+    print("\nTotal NL for the week:")
+    for drill in drill_list:
+        print(f"  {drill:<6}: {weekly_nl[drill]}")
 
 if __name__ == "__main__":
     generate_week()
-
