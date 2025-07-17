@@ -101,7 +101,6 @@ def print_pair(label, drills, ladders, nl_map):
         print(line)
     for d in drills:
         print(f"NL for {d}: {nl_map[d]}")
-    print()
 
 # === Main Execution ===
 def generate_week():
@@ -114,7 +113,7 @@ def generate_week():
     weekly_nl = {d: 0 for d in drill_list}
 
     for session, block in session_structure.items():
-        print(f"\nSession {session}")
+        print(f"\n\nSession {session}")
         tier_groups = {}
 
         for drill, tier in block:
