@@ -1,4 +1,6 @@
-import json, os, random
+import json
+import os
+import random
 
 # === Constants ===
 rep_schemes = {
@@ -61,7 +63,11 @@ def load_or_create_rms(drills, filename="rms.json"):
     return rms
 
 def load_prev_nl(filename="nl.json"):
-    return json.load(open(filename)) if os.path.exists(filename) else {}
+    if os.path.exists(filename):
+        with open(filename) as f:
+            return json.load(f)
+    else:
+        return {}
 
 def save_week_nl(week_nl, filename="nl.json"):
     with open(filename, "w") as f:
