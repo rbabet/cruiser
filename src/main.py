@@ -40,7 +40,7 @@ def load_or_create_rms(drills, filename="rms.json"):
             saved = json.load(f)
         print("Stored RMs:")
         for d, v in saved.items(): print(f"  {d}: {v}")
-        choice = input("Use these? (y / n / r to reset): ").strip().lower()
+        choice = input("Use these? (y/n or r to reset): ").strip().lower()
         if choice == 'y': return saved
         elif choice == 'r': os.remove(filename)
         elif choice == 'n': os.remove(filename)
