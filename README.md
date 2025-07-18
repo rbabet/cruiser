@@ -1,5 +1,5 @@
 This is a program for generating a solid simple science-based training plan. The target is strength and some growth.
-The purpose of this program is to practice creating and publishing a personal Python project. Nothing more.
+The purpose of this program is for me to practice creating and publishing a personal Python project. Nothing more.
 It is an application version of the 'Cruiser' training plan by Fabio Zonin of StrongFirst. All credit for the plan is his.
 
 Before running the Python program, choose four drills (exercises): squat, press, pull, and hinge. 
